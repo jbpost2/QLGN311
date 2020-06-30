@@ -1,0 +1,42 @@
+
+body{
+  font-family: Helvetica;
+  font-size: 13pt;
+}
+
+.column {
+  float: left;
+  width: 50%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.col-sm-4{
+  float: left;
+  width: 33%;
+}
+
+.col-sm-6{
+  float: left;
+  width: 50%;
+}
+
+.col-sm-8{
+  float: left;
+  width: 66%;
+}
+
+.col-sm-5{
+  float: left;
+  width: 37.5%;
+}
+
+.col-sm-7{
+  float: left;
+  width: 62.5%;
+}

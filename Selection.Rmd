@@ -1,0 +1,351 @@
+---
+title: "Selection"
+output: 
+  html_document:
+    css: css\style.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(magrittr)
+library(flextable)
+```
+
+This section is designed to help you understand the concepts behind selection.
+
+## No Selection
+
+Suppose you have a population with genotypic frequency given by the picture and table below.  
+
+ <div class="row" style= "display: flex; align-items: center; justify-content: center;">
+  <div class="column">
+  
+```{r}
+MM <- 20
+MN <- 120
+NN <- 60
+Total = MM+MN+NN
+df <- data.frame(Genotype = c("#Individuals", "Proportion"), MM = c(MM, MM/Total), MN = c(MN, MN/Total), NN = c(NN, NN/Total), Total = c(Total, 1))
+df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+```
+
+</div>
+  <div class="column">
+  ```{r, fig.align="center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, 0.1, 1, density = 50, col = "Blue")
+rect(0.1, 0, 0.7, 1, density = 50, col = "Purple")
+rect(0.7, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = 0.05, y = 0.5, cex = 2)
+text("MN", x = 0.4, y = 0.5, cex = 2)
+text("NN", x = 0.85, y = 0.5, cex = 2)
+```
+</div>
+</div> 
+
+
+Making the assumptions required for the HW law, one thing implied is that there is no selection being done.  That is, all genotypes are equally fit (MM, MN, and NN are not favored in any way).  Under all the HW assumptions, in a single generation this population should reach HW equilibrium given by the table below.  
+
+<br>
+
+```{r}
+MM <- 20
+MN <- 120
+NN <- 60
+Total <- MM+MN+NN
+p <- (MM+0.5*MN)/Total 
+sq <- data.frame(First = c("", paste("M, p = ", round(p,4)), paste("N, 1-p = ", round(1-p,4))), Second = c(paste("M, p = ", round(p,4)), paste("p^2 = ",round(p^2,4)), paste("p*(1-p) = ", round(p*(1-p),4))), Third = c(paste("N, 1-p = ", round(1-p,4)), paste("p*(1-p) = ", round(p*(1-p),4)), paste("(1-p)^2 = ", round((1-p)^2,4))))
+colnames(sq) <- sq[,1]
+sq <- sq[-1,]
+rownames(sq) <- NULL
+knitr::kable(sq)
+```
+
+<br>
+
+<div class = "row">
+<div class= "col-sm-4">
+Parent generation:  
+
+```{r}
+MM <- 20
+MN <- 120
+NN <- 60
+Total <- MM + MN + NN
+df <- data.frame(Genotype = c("#Individuals", "Proportion"), MM = c(MM, MM/Total), MN = c(MN, MN/Total), NN = c(NN, NN/Total), Total = c(Total, 1))
+
+df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+```  
+
+```{r, out.width="90%", fig.align="center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, 0.1, 1, density = 50, col = "Blue")
+rect(0.1, 0, 0.7, 1, density = 50, col = "Purple")
+rect(0.7, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = 0.05, y = 0.5, cex = 2)
+text("MN", x = 0.4, y = 0.5, cex = 2)
+text("NN", x = 0.85, y = 0.5, cex = 2)
+```  
+
+</div> 
+
+<div class = "col-sm-4">
+
+Offspring (F1):  
+
+```{r}
+MM <- p^2*Total
+MN <- 2*p*(1-p)*Total
+NN <- (1-p)^2*Total
+Total <- MM + MN + NN
+df <- data.frame(Genotype = c("#Individuals", "Proportion"), MM = c(MM, MM/Total), MN = c(MN, MN/Total), NN = c(NN, NN/Total), Total = c(Total, 1))
+
+df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+```
+
+```{r, out.width="90%", fig.align="center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, p^2, 1, density = 50, col = "Blue")
+rect(p^2, 0, 1-(1-p)^2, 1, density = 50, col = "Purple")
+rect(1-(1-p)^2, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = p^2/2, y = 0.5, cex = 2)
+text("MN", x = (p^2+p^2+2*p*(1-p))/2, y = 0.5, cex = 2)
+text("NN", x = (1-(1-p)^2+1)/2, y = 0.5, cex = 2)
+```
+
+</div>
+
+<div class = "col-sm-4">
+
+Offspring (F2):  
+
+```{r}
+MM <- p^2*Total
+MN <- 2*p*(1-p)*Total
+NN <- (1-p)^2*Total
+Total <- MM + MN + NN
+df <- data.frame(Genotype = c("#Individuals", "Proportion"), MM = c(MM, MM/Total), MN = c(MN, MN/Total), NN = c(NN, NN/Total), Total = c(Total, 1))
+df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+```
+
+```{r, out.width="90%", fig.align="center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, p^2, 1, density = 50, col = "Blue")
+rect(p^2, 0, 1-(1-p)^2, 1, density = 50, col = "Purple")
+rect(1-(1-p)^2, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = p^2/2, y = 0.5, cex = 2)
+text("MN", x = (p^2+p^2+2*p*(1-p))/2, y = 0.5, cex = 2)
+text("NN", x = (1-(1-p)^2+1)/2, y = 0.5, cex = 2)
+```
+
+</div>
+</div>
+
+
+When there is selection involved, some genotypes are favorable or unfavorable.  Recall weights can be assigned to each genotype: $w_{MM}, w_{MN}, w_{NN}$  
+
+Examples of common types of selection are given below:  
+
+```{r}
+selection <- data.frame(Genotypes = c("No Selection", "Directional", "Disruptive", "Stabilizing"), Wmm = c(1, 1, 1, 1), Wmn = c(1, 0.8, 0.3, 1.3), Wnn = c(1, 0.6, 0.7, 0.2))
+knitr::kable(selection)
+```
+
+Unlike HW equilibrium and no selection, generations will continue to change their genotypic frequencies over time.  The weights can be used to determine the new frequencies.  For this reason we'll just work with the proportions rather than the counts.
+
+Ex: Consider a directional selection having $w_{MM} = 1$, $w_{MN} = 0.5, w_{NN} = 0.25$. 
+
+<div class = "row">
+<div class= "col-sm-5">
+Current population (Parent generation):  
+
+```{r}
+MM <- p^2*Total
+MN <- 2*p*(1-p)*Total
+NN <- (1-p)^2*Total
+Total <- MM + MN + NN
+df <- data.frame(Genotype = c( "Proportion"), MM = c( MM/Total), MN = c(MN/Total), NN = c( NN/Total), Total = 1)
+
+df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+```
+
+```{r, out.width="100%", fig.align="center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, p^2, 1, density = 50, col = "Blue")
+rect(p^2, 0, 1-(1-p)^2, 1, density = 50, col = "Purple")
+rect(1-(1-p)^2, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = p^2/2, y = 0.5, cex = 2)
+text("MN", x = (p^2+p^2+2*p*(1-p))/2, y = 0.5, cex = 2)
+text("NN", x = (1-(1-p)^2+1)/2, y = 0.5, cex = 2)
+```
+
+</div> 
+
+<div class = "col-sm-7">
+
+Offspring (F1):  
+
+```{r}
+Wmm <-1
+Wmn <- 0.5
+Wnn <- 0.25
+MM <- p^2*Total
+MMw <- Wmm*MM
+MN <- 2*p*(1-p)*Total
+MNw <- Wmn*MN
+NN <- (1-p)^2*Total
+NNw <- Wnn*NN
+Totalw <- MMw + MNw+ NNw
+df <- data.frame(Genotype = c("Proportion", "Updated"), MM = c(paste0("f(MM)*Wmm = \n", round(MM/Total,4),"*", Wmm, " = ", round(MM*Wmm/Total,4)), paste0(round(MM*Wmm/Total,4), "/", round(MM*Wmm/Total + MN*Wmn/Total+NN*Wnn/Total, 4), " = ", round(MMw/Totalw,4))), 
+                 MN= c(paste0("f(MN)*Wmn = \n", round(MN/Total,4),"*", Wmn, " = ", round(MN*Wmn/Total,4)), paste0(round(MN*Wmn/Total,4), "/", round(MM*Wmm/Total + MN*Wmn/Total+NN*Wnn/Total, 4), " = ", round(MNw/Totalw,4))),
+                 NN = c(paste0("f(NN)*Wnn = \n", round(NN/Total,4),"*", Wnn, " = ", round(NN*Wnn/Total,4)), paste0(round(NN*Wnn/Total,4), "/", round(MM*Wmm/Total + MN*Wmn/Total+NN*Wnn/Total, 4), " = ", round(NNw/Totalw,4))),
+                 Total = c(round((MM*Wmm+MN*Wmn+NN*Wnn)/Total,4), 1))
+df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+```
+
+
+```{r, out.width="100%", fig.align="center"}
+plot(c(0, 2.2), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, p^2*Wmm, 1, density = 50, col = "Blue")
+rect(p^2*Wmm, 0, p^2, 1, density = 50, col = "Gray")
+rect(p^2, 0, 2*p*(1-p)*Wmn+p^2, 1, density = 50, col = "Purple")
+rect(2*p*(1-p)*Wmn+p^2, 0, 1-(1-p)^2, 1, density = 50, col = "Gray")
+rect(1-(1-p)^2, 0, 1-(1-p)^2 + (1-p)^2*Wnn, 1, density = 50, col = "Red")
+rect(1-(1-p)^2 + (1-p)^2*Wnn, 0, 1, 1, density = 50, col = "Gray")
+text("MM", x = p^2/2, y = 0.5, cex = 2)
+text("MN", x = (p^2+p^2+2*p*(1-p))/2, y = 0.5, cex = 2)
+text("NN", x = (1-(1-p)^2+1)/2, y = 0.5, cex = 2)
+
+#equal sign
+rect(1.05, 0.47, 1.15, 0.49, density = 100, col = "Black")
+rect(1.05, 0.51, 1.15, 0.53, density = 100, col = "Black")
+#add next standardized part
+rect(1.2, 0, 1.2+MMw/Totalw, 1, density = 50, col = "Blue")
+rect(1.2+MMw/Totalw, 0, 2.2- NNw/Totalw, 1, density = 50, col = "Purple")
+rect(2.2- NNw/Totalw, 0, 2.2, 1, density = 50, col = "Red")
+text("MM", x = (1.2+1.2+MMw/Totalw)/2, y = 0.5, cex = 2)
+text("MN", x = (1.2+MMw/Totalw + 2.2 - NNw/Totalw)/2, y = 0.5, cex = 2)
+text("NN", x = (2.2- NNw/Totalw+2.2)/2, y = 0.5, cex = 2)
+```
+
+</div>
+</div>
+
+In the plots on the right, the greyed out part represents where the selection is occurring.  Half of the MN and three fourths of the NN genotypes die off.  The area remaining is then restandardized to account for losing this area.  
+
+In the next generation the frequencies would change again.
+
+<div class = "row">
+<div class= "col-sm-5">
+Current population (F1):  
+
+```{r}
+Wmm <-1
+Wmn <- 0.5
+Wnn <- 0.25
+MMp <- MMw/Totalw
+MNp <- MNw/Totalw
+NNp <- NNw/Totalw
+
+df <- data.frame(Genotype = c("Proportion"), MM = round(MMp, 4), MN = round(MNp, 4), NN = round(NNp, 4), Total = 1)
+df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+```
+
+
+```{r, out.width="100%", fig.align="center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+
+#add next standardized part
+rect(0, 0, MMp, 1, density = 50, col = "Blue")
+rect(MMp, 0, MMp+MNp, 1, density = 50, col = "Purple")
+rect(MMp+MNp, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = (MMp)/2, y = 0.5, cex = 2)
+text("MN", x = (MMp+MMp+MNp)/2, y = 0.5, cex = 2)
+text("NN", x = (MMp+MNp+1)/2, y = 0.5, cex = 2)
+```
+
+</div> 
+
+<div class = "col-sm-7">
+
+Offspring (F2):  
+
+```{r}
+Wmm <-1
+Wmn <- 0.5
+Wnn <- 0.25
+newTotal <- Wmm*MMp + Wmn*MNp + Wnn*NNp
+df <- data.frame(Genotype = c("Proportion", "Updated"), 
+                 MM = c(paste0("f(MM)*Wmm = \n", round(MMp,4),"*", Wmm, " = ", round(Wmm*MMp,4)),
+                        paste0(round(Wmm*MMp,4), "/", round(newTotal, 4), " = ", round(Wmm*MMp/(newTotal),4))), 
+                 MN= c(paste0("f(MN)*Wmn = \n", round(MNp,4),"*", Wmn, " = ", round(Wmn*MNp,4)),
+                        paste0(round(Wmn*MMp,4), "/", round(newTotal, 4), " = ", round(Wmn*MNp/(newTotal),4))), 
+                 NN = c(paste0("f(NN)*Wnn = \n", round(NNp,4),"*", Wnn, " = ", round(Wnn*NNp,4)),
+                        paste0(round(Wnn*NNp,4), "/", round(newTotal, 4), " = ", round(Wnn*NNp/(newTotal),4))), 
+                 Total = c(round(newTotal,4), 1))
+df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+```
+
+```{r}
+parMM <- Wmm*MMp
+parMN <- Wmn*MNp
+parNN <- Wnn*NNp
+
+neWmm <- Wmm*MMp/(newTotal)
+neWmn <- Wmn*MNp/(newTotal)
+neWnn <- Wnn*NNp/(newTotal)
+
+plot(c(0, 2.2), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, parMM, 1, density = 50, col = "Blue")
+rect(parMM, 0, MMp, 1, density = 50, col = "Gray")
+rect(MMp, 0, MMp + parMN, 1, density = 50, col = "Purple")
+rect(MMp + parMN, 0, MMp+MNp, 1, density = 50, col = "Gray")
+rect(MMp+MNp, 0, MMp+MNp+parNN, 1, density = 50, col = "Red")
+rect(MMp+MNp+parNN, 0, 1, 1, density = 50, col = "Gray")
+text("MM", x = MMp/2, y = 0.7, cex = 2)
+text("MN", x = (MMp+MNp+MMp)/2, y = 0.5, cex = 2)
+text("NN", x = (MNp+MMp+1)/2, y = 0.3, cex = 2)
+
+#equal sign
+rect(1.05, 0.47, 1.15, 0.49, density = 100, col = "Black")
+rect(1.05, 0.51, 1.15, 0.53, density = 100, col = "Black")
+#add next standardized part
+rect(1.2, 0, 1.2+neWmm, 1, density = 50, col = "Blue")
+rect(1.2+neWmm, 0, 1.2+neWmm+neWmn, 1, density = 50, col = "Purple")
+rect(1.2+neWmm+neWmn, 0, 2.2, 1, density = 50, col = "Red")
+text("MM", x = (1.2+1.2+neWmm)/2, y = 0.7, cex = 2)
+text("MN", x = (1.2+neWmm+1.2+neWmm+neWmn)/2, y = 0.5, cex = 2)
+text("NN", x = (1.2+neWmm+neWmn+2.2)/2, y = 0.3, cex = 2)
+```
+
+
+</div>
+</div>
+
+### Problems  
+
+1. Suppose that your population has genotypic frequencies given by the table below:  
+
+    ```{r}
+    MM <- p^2*Total
+    MN <- 2*p*(1-p)*Total
+    NN <- (1-p)^2*Total
+    Total <- MM + MN + NN
+    df <- data.frame(Genotype = c( "Proportion"), MM = c( MM/Total), MN = c(MN/Total), NN = c( NN/Total), Total = 1)
+
+    df %>% regulartable() %>% autofit()%>% fontsize(size = 14, part = "all")
+    ```
+    Find the genotypic frequencies for the F1 generation under the "Stabilizing" selection weights given in the table above.  
+
+2. Use the [application here](https://shiny.stat.ncsu.edu/jbpost2/Selection) to see the behavior of the population over time.  Set the allele frequency to be 0.4 and use the selection weights from question 1.  
+
+    a. How many generations does it take before the NN genotype is essentially gone?  
+    
+    b. Why does the NN genotype disappear more quickly than the MM genotype?
+    
+
+3.  Use your own population genotypic frequencies and selection weights to see they affect genotypic frequencies over time.  
+
+<br>
+<br>
+<br>

@@ -1,0 +1,317 @@
+---
+title: "Hardy-Weinberg Equilibrium"
+output: 
+  html_document:
+    css: css\style.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(magrittr)
+library(flextable)
+```
+
+This section is designed to help you understand the concepts behind HW equilibrium.
+
+# Proportions
+
+Understanding proportions (aka probabilities or relative frequencies) is vital to understanding HW equilibrium.  These first questions are designed to help you conceptualize proportions.  
+
+## Key ideas: 
+
++ Proportion = part of a whole  
+
++ Often denoted by $p$ and $q = 1-p$  
+
++ Must be between 0 and 1, $0\leq p \leq 1$  
+
+## Questions:
+1. Roughly what is the proportion of Blue in the picture?  Proportion of Red?  Proportion of purple?  
+
+```{r, out.width="60%", fig.align = "center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, 0.33, 1, density = 50, col = "Blue")
+rect(0.33, 0, 0.67, 1, density = 50, col = "Purple")
+rect(0.67, 0, 1, 1, density = 50, col = "Red")
+```
+
+2. Roughly what is the proportion of Blue in the picture?  Proportion of Red?  Proportion of purple?  
+
+```{r, out.width="60%", fig.align = "center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, 0.3, 1, density = 50, col = "Blue")
+rect(0.3, 0, 0.9, 1, density = 50, col = "Purple")
+rect(0.9, 0, 1, 1, density = 50, col = "Red")
+```
+
+
+3.  Draw a similar picture that would have following proportions: 1/5 (0.2, 20%) blue, 1/10 (0.1, 10%) purple, 7/10 (0.7, 70%) red  
+
+
+## Relation to Allele (Gene) frequency and Genotypic frequencies  
+
+Recall that genotypic frequencies describe the proportion of genotypes in a population. 
+
+Ex:
+```{r}
+MM <- 10
+MN <- 60
+NN <- 30
+df <- data.frame(Genotype = "#Individuals", MM, MN, NN, Total = MM+MN+NN)
+df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+```
+
+This implies that 
+
+- the frequency of MM is f(MM) = (# MM)/(total #) = `r MM`/`r MM+MN+NN` = `r MM/(MM+MN+NN)`
+
+- the frequency of MN is f(MN) = (# MN)/(total #) = `r MN`/`r MM+MN+NN` = `r MN/(MM+MN+NN)`.
+
+- the frequency of NN is f(NN) = (# NN)/(total #) = `r NN`/`r MM+MN+NN` = `r NN/(MM+MN+NN)`.
+
+**You could consider these as Blue (MM), Purple (MN), and Red (NN) in the pictures above.**
+
+If these proportion follow a certain pattern then we say the the population is in Hardy-Weinberg equilibrium.  The easiest way to determine this is to first find the allele (or gene frequency).  That is, the proportion of M and the proportion of N in the population.
+
+- p = f(M)  
+
+- q = 1 - p = f(N)  
+
+These can be found via our genotypic frequencies!  Consider a visual of our population:
+
+```{r, out.width="60%", fig.align = "center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, 0.1, 1, density = 50, col = "Blue")
+rect(0.1, 0, 0.7, 1, density = 50, col = "Purple")
+rect(0.7, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = 0.05, y = 0.5, cex = 2)
+text("MN", x = 0.4, y = 0.5, cex = 2)
+text("NN", x = 0.85, y = 0.5, cex = 2)
+```
+
+The blue section has only 'M' alleles, the purple section has half (1/2 or 0.5) 'M' alleles and half 'N' alleles.  The red section has only 'N' alleles.
+
+**This implies we can get the proportion of 'M' alleles by adding the proportion (area) of the blue (MM) region and adding half the proportion (area) of the purple (MN) region (since it is really half 'M' alleles in some sense)!  **
+
+```{r, out.width="60%", fig.align = "center"}
+plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", axes =FALSE)
+rect(0, 0, 0.1, 1, density = 50, col = "Blue")
+rect(0.1, 0, 0.7, 1, density = 50, col = "Purple")
+rect(0.7, 0, 1, 1, density = 50, col = "Red")
+text("MM", x = 0.05, y = 0.5, cex = 2)
+text("MN", x = 0.4, y = 0.5, cex = 2)
+text("NN", x = 0.85, y = 0.5, cex = 2)
+abline(v = 0.4)
+text("Half is M", x = 0.225, y= 0.75, cex = 2)
+text("Half is N", x = 0.575, y= 0.75, cex = 2)
+```
+
+- p = f(M) = f(MM) + 0.5*f(MN) = `r MM/(MM+MN+NN)` + `r 0.5*MN/(MM+MN+NN)` = `r MM/(MM+MN+NN) + 0.5*MN/(MM+MN+NN)`  
+
+Similarly, 
+
+- q = f(N) = f(NN) + 0.5*f(MN) = `r NN/(MM+MN+NN)` + `r 0.5*MN/(MM+MN+NN)` = `r NN/(MM+MN+NN) + 0.5*MN/(MM+MN+NN)`  
+
+## Questions:
+
+4. For the populations described below: 
+
+- Find the genotypic frequencies (proportion of MM, MN, NN) and draw a picture representing the population.   
+
+- Determine the allele frequencies  
+
+    a.  
+    
+        ```{r}
+          MM <- 16
+          MN <- 48
+          NN <- 36
+          df <- data.frame(Genotype = "#Individuals", MM, MN, NN, Total = MM+MN+NN)
+          df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+        ```
+
+    b. Notice that the population size isn't 100 here!  Recall that proportions are just part of a whole - (# in category of interest)/(total #)  
+    
+        ```{r}
+        MM <- 32
+        MN <- 56
+        NN <- 112
+        df <- data.frame(Genotype = "#Individuals", MM, MN, NN, Total = MM+MN+NN)
+        df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+        ```
+
+# Hardy-Weinberg Equilibrium  
+
+Allele and genotypic frequencies will arrive at and remain at equilibrium frequencies after one generation of random mating under the assumptions:
+
+- infinitlely large population  
+- random mating  
+- no selection  
+- no migration  
+- no mutation  
+
+The HW law says the frequencies follow the pattern:
+
+- f(MM) = $p^2$  
+- f(MN) = $2pq$ = $2p(1-p)$
+- f(NN) = $q^2$ = $(1-p)^2$
+
+Graphically, this relationship is given below.
+
+```{r, fig.align = "center"}
+x <- 1:1000/1000
+plot(x, x^2, ylab = "Genotypic frequency", xlab = "p \n allelic frequency", type = "l", lwd = 2, col = "Blue", main = "HW Equilibrium Graph")
+lines(x, (1-x)^2, lwd = 2, col = "Red")
+lines(x, 2*x*(1-x), lwd = 2, col = "Purple")
+legend(x = 0.82, y = 0.6, legend = c("f(MM)", "f(MN)", "f(NN)"), col = c("Blue", "Purple", "Red"), lwd = 2)
+```
+
+Given the allele frequencies ($p$ and $q$) we can check our population!  
+
+Suppose our allelic frequencies are $p$ = f(M) = 0.2 and $q$ = $1-p$ = f(N) = 0.8.  If our population is in HW equilibrium then the genotypic frequencies should be 
+
+- f(MM) = $p^2$ = $0.2^2$ = 0.04  
+- f(MN) = $2*p*(1-p)$ = $2*0.2*0.8$ = 0.32  
+- f(NN) = $(1-p)^2$ = $0.8^2$ = 0.64  
+
+```{r, fig.align = "center"}
+x <- 1:1000/1000
+plot(x, x^2, ylab = "Genotypic frequency", xlab = "p \n allelic frequency", type = "l", lwd = 2, col = "Blue", main = "HW Equilibrium Graph")
+lines(x, (1-x)^2, lwd = 2, col = "Red")
+lines(x, 2*x*(1-x), lwd = 2, col = "Purple")
+legend(x = 0.82, y = 0.6, legend = c("f(MM)", "f(MN)", "f(NN)"), col = c("Blue", "Purple", "Red"), lwd = 2)
+abline(v = 0.2, lwd = 2, lty = 2)
+text("f(MM) = 0.04", x = 0.2, y = 0.04, cex = 1.25)
+text("f(MN) = 0.32", x = 0.2, y = 0.32, cex = 1.25)
+text("f(NN) = 0.64", x = 0.2, y = 0.64, cex = 1.25)
+```
+
+## Problems  
+
+5. Suppose our allelic frequencies are $p$ = f(M) = 0.3 and $q$ = $1-p$ = f(N) = 0.7 and our population is in HW equilibrium.  
+
+    - Give the genotypic frequencies we should see.
+    - Draw a rectangle representing these proportions. 
+    - Draw the HW equilibrium graph and draw the appropriate vertical line as done above.  
+    
+6. Suppose our population is in HW equilibrium and f(MM) = 0.6.  Draw the HW equilibrium graph and draw the appropriate vertical line as done above.  Using the graph, estimate the values of f(MN), f(NN), and p = f(M).
+
+# Chi-square Test and Expected Counts  
+
+## Expected Counts Idea  
+
+To understand the Chi-square test, we first need to understand expected counts. Think of flipping a coin whose proportion of heads when flipped is 0.5.  If we flipped the coin 100 times, how many heads would we roughly expect to see?  About 50.  
+
+If our coin had a proportion of heads when flipped of 0.25 and we flipped it 100 times we'd expect roughly 25 heads.  
+
+This idea generalizes to when we don't have a sample size (or # of trials) equal to 100.  
+
+**For a proportion of 'successes' equal to p and a sample size of n, the expected (or average) number of successes is $n*p$.**
+
+## Why do we need a test?  
+Suppose we want to know if a population is in HW equilibrium.  If we have a sample from a population variability exists in the sample counts.  The genotypic and allelic frequencies we see won't exactly follow the HW law **even if the population is truly in HW equilibrium**.  
+
+For instance, suppose we have a population in HW equilibrium with p = 0.2 as above.  
+
+- f(MM) = $p^2$ = $0.2^2$ = 0.04  
+- f(MN) = $2*p*(1-p)$ = $2*0.2*0.8$ = 0.32  
+- f(NN) = $(1-p)^2$ = $0.8^2$ = 0.64  
+
+If we sample 100 members of the population and obtain their genotypic frequencies, we'd **expect** observed frequencies equal to 
+
+- Expected MM count = 0.04*100 = 4  
+- Expected MN count = 0.32*100 = 32  
+- Expected NN count = 0.64*100 = 64  
+
+However, we won't see counts exactly in alignment with what we'd expect with the HW law **simply due to random chance**.  
+
+Suppose we observed the table below after taking a sample of 100 members of the population:
+
+Ex:
+```{r}
+MM <- 6
+MN <- 31
+NN <- 63
+df <- data.frame(Genotype = "#Individuals", MM, MN, NN, Total = MM+MN+NN)
+df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+```
+
+Comparing the observed and expected counts we might look at it this way:
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+MMO <- 6
+MNO <- 31
+NNO <- 63
+p <- 0.2
+Total <- MMO+MNO+NNO
+df <- data.frame(Classes = c("MM", "MN", "NN", "Total"), Observed = c(MMO, MNO, NNO, Total), Expected = c(p^2*Total, 2*p*(1-p)*Total, (1-p)^2*Total, Total)) %>% mutate(`Obs-Exp` = Observed - Expected)
+df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+```
+
+
+Clearly, this sample doesn't give much evidence the population is out of HW equilibrium.  
+
+What about a table like this:
+
+Ex:
+```{r}
+MM <- 3
+MN <- 27
+NN <- 70
+df <- data.frame(Genotype = "#Individuals", MM, MN, NN, Total = MM+MN+NN)
+df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+```
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+MMO <- 3
+MNO <- 27
+NNO <- 70
+p <- 0.2
+Total <- MMO+MNO+NNO
+df <- data.frame(Classes = c("MM", "MN", "NN", "Total"), Observed = c(MMO, MNO, NNO, Total), Expected = c(p^2*Total, 2*p*(1-p)*Total, (1-p)^2*Total, Total)) %>% mutate(`Obs-Exp` = Observed - Expected)
+df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+```
+
+This is a little harder to decide!  To formalize our decision we can do a statistical test.  In this case the test is called a Chi-square test. 
+
+**By doing a statistical test, we can determine if our counts are _far enough away_ from what we would expect under the HW law to reject the assumption that HW equilibrium is in place.**
+
+## Problems  
+
+7. Refer to question 4.  Create a table that gives Observed, Expected, and Observed minus Expected counts for each population under the assumption of HW equilibrium.  
+
+## Chi-square Test  
+
+To combine the Observed minus Expected counts in a meaningful way, we use a Chi-square test statistic.  
+
+$$\chi^2 = \sum_{\mbox{all classes}} \frac{(observed - expected)^2}{expected}$$
+
+If HW equilibrium is true, this statistical is known to be observed in the pattern of a $\chi^2$ distribution with 1 degree of freedom (called the reference distribution).  This is what is used to determine if the observed value of the test statistic is 'large' or 'extreme'.  For our purposes we can simply compare to 3.84. 
+
+- If the observed test stat is greater than 3.84, reject the assumption of HW equilibrium.
+
+- If not, we don't have strong enough evidence to conclude the population is not in HW equilibrium.  
+
+We can add a column to our previous table that will help us find the observed test statistic value.
+
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+MMO <- 3
+MNO <- 27
+NNO <- 70
+p <- 0.2
+Total <- MMO+MNO+NNO
+df <- data.frame(Classes = c("MM", "MN", "NN", "Total"), Observed = c(MMO, MNO, NNO, Total), Expected = c(p^2*Total, 2*p*(1-p)*Total, (1-p)^2*Total, Total)) %>% mutate(`Obs-Exp` = Observed - Expected, `(Obs-Exp)^2/Exp` = (Observed-Expected)^2/Expected)
+df[4, "(Obs-Exp)^2/Exp"] <- sum(df[1:3, '(Obs-Exp)^2/Exp'])
+df %>% regulartable() %>% autofit() %>% fontsize(size = 14, part = "all")
+```
+
+This is less than 3.84 so we would not conclude the population is out of HW equilibrium based on this sample.  
+
+## Problems  
+
+8. Refer to question 7.  Create a table that gives Observed, Expected, Observed minus Expected counts, and the $(Observed-Expected)^2/Expected$ values for the second example.  What is your conclusion about the assumption of HW equilibrium?  
+
+<br><br><br><br><br>

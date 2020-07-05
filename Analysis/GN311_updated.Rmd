@@ -1,0 +1,169 @@
+---
+title: GN 311, June 2020
+header-includes:
+- \usepackage{xcolor}
+- \usepackage{fontspec}
+output:
+  html_document:
+    toc: true
+    toc_float: true 
+    number_sections: true
+    fig_width: 8.5
+    fig_height: 5.5
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+---
+
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 14px;
+  }
+td {  /* Table  */
+  font-size: 11px;
+}
+h1.title {
+  font-size: 38px;
+  color: #CC0000;
+}
+h1 { /* Header 1 */
+  font-size: 24px;
+  color: #2774AE;
+}
+h2 { /* Header 2 */
+    font-size: 18px;
+  color: #003B5C;
+}
+h3 { /* Header 3 */
+  font-size: 16px;
+  color: #003B5C;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+\setmainfont{Arial}
+
+```{r,echo=F,include=F}
+library(gridExtra)
+```
+
+```{r, include=F ,echo=F}
+source("/Users/davidstokes/Desktop/DasaStuff/GN311_May_2020/GN311_updated.R")
+```
+
+# What are the highest math classes that students took? {.tabset}
+
+As seen in the graph and table in the tabs below, the most frequent highest math course taken is `MTH 231` in both 2019 and 2020. This course represents 36.8% and 41.0% of the maximum math courses taken in 2019 and 2020, respectively, out of courses that range from `MTH 103` to `MTH 432`.  
+
+## Highest Math Course Graph
+```{r,echo=F}
+p.maxMTH
+```
+
+## Highest Math Course Table
+```{r, echo=F}
+t.maxMTH
+```
+
+# When did they take their highest math? {.tabset}
+The heatmap displays the most frequent term in which the highest math class was taken, by year. The colors/values correspond to the counts/frequencies that are greater than the median count value (excluding zeros). The median frequency across all year and MTH course combinations for 2019 was 7 and was 6 for 2020 (excluding zeros). Most students took their highest math class within 4 semesters of taking GN 311. For GN 311 2019, the semester where most students took their highest MTH course was the 2018 Spring Term. For GN 311 2020, the 2019 Spring Term contained the highest frequencies of maximum MTH course taken.
+
+NOTE: Students that may have taken their highest math class more than once are counted only once according to the semester in which their grade points were highest (which generally corresponds to the latest enrollment), and then by latest enrollment if grade points were the same across different semesters.
+
+## Graphs of Highest Math by Year Taken 
+```{r,echo=F}
+g.whenMTH
+```
+
+## 2019 Table
+```{r, echo=F}
+t.whenMTH19
+```
+
+## 2020 Table
+```{r, echo=F}
+t.whenMTH20
+```
+
+# How many students have taken ST 311? (prior to enrollment in GN 311) {.tabset}
+193 students took ST 311 prior to taking GN 311 in the fall of 2019. 213 students took ST 311 prior to taking GN 311 in the spring of 2020. This table excludes students that took ST 311 during their enrollment in GN 311. 
+
+NOTE: Students that may have taken ST 311 more than once are counted only once according to the semester in which their grade points were highest (which generally corresponds to the latest enrollment), and then by latest enrollment if grade points were the same across different semesters.
+
+## Table
+
+```{r,echo=F}
+t.ST311prior
+```
+
+# How many people are currently taking ST 311? (while enrolled in GN 311) {.tabset}
+
+36 students were enrolled in ST 311 while taking GN 311 during the fall of 2019. 28 students are currently enrolled in ST 311 and GN 311 for the spring, 2020.
+
+NOTE: Few students may have also taken ST 311 prior to current ST 311 course enrollment with respect to their GN 311 cohort.
+
+## Table
+
+```{r,echo=F}
+t.CE
+```
+
+# What was the average GPA for ST 311? {.tabset}
+
+The average GPA for students who took ST 311 and GN 311 during Fall 2019 (indicated by the 'Current (2019)' row) is 3.0. The average GPA for students who did not take (or are not taking) ST 311 concurrently with GN 311, in 2019 and 2020 (middle row), is 3.3. The overall average GPA including all students (see notes below) is 3.1.
+
+## Table
+
+```{r,echo=F}
+t.ST
+```
+
+# How many students got Homework 1 question 10 correct? How many got Homework 2 question 9 correct? {.tabset}
+
+The table below displays 2020 in blue. The counts and percentages of correct, incorrect, and 'No Record' responses are indicated in the columns below.
+
+## Table
+
+```{r,echo=F}
+t.QC
+```
+
+# Does it make a difference whether someone has taken ST 311 or not as to whether they got question 10 or 9 correct? {.tabset}
+
+## Table
+
+Below is a frequency table for questions 9, 10 and both that tabulates correct, incorrect and no record responses by whether or not ST 311 was taken. The first two rows are for 2019 and the second two rows are for 2020.  
+
+```{r,echo=F}
+t.tST
+```
+
+## Significant Differences
+
+Using a binomial glm model `logodds(BothCorrect) ~ HighestMTH + tookST311 + ST311current` did not yield any significant factors.
+
+Marginal binomial models for the log odds of answering each separate question correctly, using whether or not a student has taken ST 311 as the factor of interest indicated no significant association of taking ST 311 and grades for 2019 on correct answers for each question and both combined. The same results were found for 2020 except for question 10 where the model indicates a significant association between taking ST 311 and correct answers at the .032 significane level using a Wald Test. However, the chi-square test does not indicate significance and accounting for the multiple tests, the association is not likely significant.  
+
+'No Record' responses were excluded from these models. 
+
+Below is the summary output for the binomial model coefficients for question 9 in 2019 along with the chi-square association test. The last two rows are the same models for question 9 in 2020. All other tests of interest are similar in that there is no evidence of statistically significant association between taking ST 311 on answer status.
+
+```{r,echo=F}
+A<-summary(g.binomQ919)
+A$coefficients
+summary(table(gn311$tookST311[gn311$year==2019],
+                       gn311$Q9correct[gn311$year==2019]))
+
+B<-summary(g.binomQ920)
+B$coefficients
+summary(table(gn311$tookST311[gn311$year==2020],
+                       gn311$Q9correct[gn311$year==2020]))
+
+```
+

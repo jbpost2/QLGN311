@@ -54,7 +54,7 @@ library(gridExtra)
 ```
 
 ```{r, include=F ,echo=F}
-source("/Users/davidstokes/Desktop/DasaStuff/GN311_May_2020/GN311_updated.R")
+source("GN311_updated.R")
 ```
 
 # What are the highest math classes that students took? {.tabset}
@@ -166,4 +166,8 @@ summary(table(gn311$tookST311[gn311$year==2020],
                        gn311$Q9correct[gn311$year==2020]))
 
 ```
+
+# Analysis in regard to HW 6 questions
+
+Intervention occurred between homework 2 and homework 6.  We want to look at any possible impact the intervention may have had.
 

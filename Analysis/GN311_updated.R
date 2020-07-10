@@ -11,7 +11,7 @@ library(RColorBrewer)
 
 ## New dataset, updated end of May 2020
 gn311 <- read_csv(
-  "/Users/davidstokes/Desktop/DasaStuff/GN311_May_2020/GN311wST311currentdeID_updated.csv") %>%
+  "GN311wST311currentdeID_updated.csv") %>%
   as.data.frame()
 
 ###### Questions #######
@@ -449,4 +449,26 @@ g.full19 <- glm(bothQscorrect ~ MTHcourse + MTHcourseTerm + tookST311 + ST311cur
                 family="binomial",data=gn311[gn311$bothQscorrect!="No Record",])
 
 
+##Looking at homework 6 along with previous homework assignments
+#Looks like there are many question from homework 6 to cover... Just need to take the score column
+# and see if it is the max of that column and deal with nas or missing
 
+gn311 %>% select(starts_with("HW6") & ends_with("score")) %>% View()
+
+binary <- gn311 %>% select(starts_with("HW6") & ends_with("score")) %>% 
+  apply(MARGIN = 2, FUN = function(x){
+    ifelse(as.numeric(x)/max(as.numeric(x), na.rm = TRUE) == 1, 1, 0)
+  }
+  ) %>% as.data.frame()
+
+#make sure there are no duplicate names from the original
+names(binary) <- paste(names(binary), "bin", sep = "_")
+
+#check on all questions...
+binary$HW6_all_bin <- apply(binary, FUN = sum, MARGIN = 1)/length(names(binary))
+
+#get full data
+full_data <- cbind(gn311, binary)
+
+#Now look at tables for each question as compared to the first questions - do so by cohort (fall/spring)
+table(full_data$bothQscorrect, full_data$HW6_Q_3_score_bin,full_data$Cohort)

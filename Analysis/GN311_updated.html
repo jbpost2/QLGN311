@@ -4103,7 +4103,7 @@ Both
 <h1><span class="header-section-number">7</span> Does it make a difference whether someone has taken ST 311 or not as to whether they got question 10 or 9 correct?</h1>
 <div id="table-6" class="section level2">
 <h2><span class="header-section-number">7.1</span> Table</h2>
-<p>Below is a frequency table for questions 9, 10 and both that tabulates correct, incorrect and no record responses by whether or not ST 311 was taken. The first two rows are for 2019 and the second two rows are for 2020.</p>
+<p>Below is a frequency table for questions 9, 10 and both that tabulates correct, incorrect and no record responses by whether or not ST 311 was taken. The first two rows are for 2019 and the second two rows are for 2020. These questions are prior to intervention in the spring 2020 semester so we would roughly expect to see the same trends across 2019 and 2020 assuming similar populations of students.</p>
 <table class="table table-striped" style="margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -4320,6 +4320,253 @@ Took 311
 ## Test for independence of all factors:
 ##  Chisq = 5.069, df = 2, p-value = 0.0793</code></pre>
 </div>
+</div>
+<div id="analysis-in-regard-to-hw-6-questions" class="section level1">
+<h1><span class="header-section-number">8</span> Analysis in regard to HW 6 questions</h1>
+<p>Intervention occurred between homework 2 and homework 6. We want to look at any possible impact the intervention may have had. There are a number of questions from homework 6 to consider here. There are binary indicators of correct/incorrect for each and one summary average variable that aggregates across the questions.</p>
+<p>For all of the questions, ignoring missing values (students that didn’t complete the question and students that didn’t have a cohort) the first quartile of binary scores is 1. This indicates that 75% of people got an individual question correct. The sample proportion of correct responses for each question is given below as well as the summary stats on the aggregate variable.</p>
+<pre class="r"><code>means &lt;- full_data %&gt;% group_by(Cohort) %&gt;% select(Cohort, ends_with(&quot;bin&quot;)) %&gt;% 
+  summarize_if(.predicate = function(x) is.numeric(x), .funs = funs(mean=&quot;mean&quot;), na.rm = TRUE) 
+kable(means[1:2,], col.names = c(&quot;Cohort&quot;, paste(&quot;Q&quot;, c(3:10, 15:19)), &quot;Aggregate&quot;), digits = 3) %&gt;% 
+  kable_styling(bootstrap_options = &quot;striped&quot;,full_width = T) </code></pre>
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Cohort
+</th>
+<th style="text-align:right;">
+Q 3
+</th>
+<th style="text-align:right;">
+Q 4
+</th>
+<th style="text-align:right;">
+Q 5
+</th>
+<th style="text-align:right;">
+Q 6
+</th>
+<th style="text-align:right;">
+Q 7
+</th>
+<th style="text-align:right;">
+Q 8
+</th>
+<th style="text-align:right;">
+Q 9
+</th>
+<th style="text-align:right;">
+Q 10
+</th>
+<th style="text-align:right;">
+Q 15
+</th>
+<th style="text-align:right;">
+Q 16
+</th>
+<th style="text-align:right;">
+Q 17
+</th>
+<th style="text-align:right;">
+Q 18
+</th>
+<th style="text-align:right;">
+Q 19
+</th>
+<th style="text-align:right;">
+Aggregate
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Fall2019
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.876
+</td>
+<td style="text-align:right;">
+0.868
+</td>
+<td style="text-align:right;">
+0.868
+</td>
+<td style="text-align:right;">
+0.863
+</td>
+<td style="text-align:right;">
+0.857
+</td>
+<td style="text-align:right;">
+0.854
+</td>
+<td style="text-align:right;">
+0.881
+</td>
+<td style="text-align:right;">
+0.951
+</td>
+<td style="text-align:right;">
+0.911
+</td>
+<td style="text-align:right;">
+0.867
+</td>
+<td style="text-align:right;">
+0.880
+</td>
+<td style="text-align:right;">
+0.900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Spring2020
+</td>
+<td style="text-align:right;">
+0.969
+</td>
+<td style="text-align:right;">
+0.966
+</td>
+<td style="text-align:right;">
+0.921
+</td>
+<td style="text-align:right;">
+0.906
+</td>
+<td style="text-align:right;">
+0.901
+</td>
+<td style="text-align:right;">
+0.864
+</td>
+<td style="text-align:right;">
+0.841
+</td>
+<td style="text-align:right;">
+0.846
+</td>
+<td style="text-align:right;">
+0.890
+</td>
+<td style="text-align:right;">
+0.959
+</td>
+<td style="text-align:right;">
+0.931
+</td>
+<td style="text-align:right;">
+0.927
+</td>
+<td style="text-align:right;">
+0.921
+</td>
+<td style="text-align:right;">
+0.921
+</td>
+</tr>
+</tbody>
+</table>
+<p>Conducting a quick comparison of these sample proportions by question</p>
+<pre class="r"><code>full_data &lt;- full_data[!is.na(full_data$Cohort),]
+sum_glm &lt;- function(data, response){ 
+  fit &lt;- glm(data[[response]] ~ Cohort, data = data)
+  resp &lt;- gregexpr(response, pattern = &quot;(Q_\\d)&quot;)
+  ret &lt;- c(substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), round(c(fit$coefficients, summary(fit)$coefficients[2,4]), 4))
+  names(ret) &lt;- c(&quot;Response&quot;, &quot;Intercept&quot;, &quot;Beta1&quot;, &quot;p-value&quot;)
+  ret
+}
+
+bin_names &lt;- c(&quot;HW6_Q_3_score_bin&quot;, &quot;HW6_Q_4_score_bin&quot;, &quot;HW6_Q_5_score_bin&quot;,
+               &quot;HW6_Q_6_score_bin&quot;, &quot;HW6_Q_7_score_bin&quot;, &quot;HW6_Q_8_score_bin&quot;,
+               &quot;HW6_Q_9_score_bin&quot;, &quot;HW6_Q_10_score_bin&quot;, &quot;HW6_Q_15_score_bin&quot;,
+               &quot;HW6_Q_16_score_bin&quot;, &quot;HW6_Q_17_score_bin&quot;, &quot;HW6_Q_18_score_bin&quot;,
+           &quot;HW6_Q_19_score_bin&quot;)
+lapply(X = bin_names, FUN = sum_glm, data = full_data)</code></pre>
+<pre><code>## [[1]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_3&quot;  &quot;0.9785&quot; &quot;-0.0097&quot;  &quot;0.4166&quot; 
+## 
+## [[2]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_4&quot;  &quot;0.9784&quot; &quot;-0.0125&quot;  &quot;0.3053&quot; 
+## 
+## [[3]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_5&quot;   &quot;0.876&quot;  &quot;0.0453&quot;  &quot;0.0461&quot; 
+## 
+## [[4]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_6&quot;  &quot;0.8679&quot;  &quot;0.0385&quot;  &quot;0.1058&quot; 
+## 
+## [[5]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_7&quot;  &quot;0.8679&quot;   &quot;0.033&quot;  &quot;0.1704&quot; 
+## 
+## [[6]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_8&quot;   &quot;0.863&quot;   &quot;9e-04&quot;  &quot;0.9726&quot; 
+## 
+## [[7]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_9&quot;  &quot;0.8571&quot; &quot;-0.0156&quot;  &quot;0.5585&quot; 
+## 
+## [[8]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_1&quot;  &quot;0.8544&quot; &quot;-0.0085&quot;  &quot;0.7502&quot; 
+## 
+## [[9]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_1&quot;  &quot;0.8808&quot;  &quot;0.0091&quot;  &quot;0.7037&quot; 
+## 
+## [[10]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_1&quot;  &quot;0.9514&quot;  &quot;0.0081&quot;  &quot;0.6027&quot; 
+## 
+## [[11]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_1&quot;  &quot;0.9111&quot;  &quot;0.0198&quot;  &quot;0.3278&quot; 
+## 
+## [[12]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_1&quot;  &quot;0.8672&quot;  &quot;0.0599&quot;  &quot;0.0088&quot; 
+## 
+## [[13]]
+##  Response Intercept     Beta1   p-value 
+##     &quot;Q_1&quot;  &quot;0.8804&quot;  &quot;0.0408&quot;  &quot;0.0696&quot;</code></pre>
+<p>Three of these are significant or marginally signficant and in the direction we’d hope for. That’s a good sign.</p>
+<p>To further investigate the effect of the intervention we’ll look at a break down comparing cohorts for correct/incorrect question status by:</p>
+<ul>
+<li>ST 311 status (not taken, currently in, previously taken)<br />
+</li>
+<li>ST 311 GPA for those that have taken the course<br />
+</li>
+<li>highest math course taken with indications for grade<br />
+</li>
+<li>class level (senior, etc.)</li>
+<li>race<br />
+</li>
+<li>sex<br />
+</li>
+<li>combinations of sex and race<br />
+</li>
+<li>transfer status<br />
+</li>
+<li>rural status<br />
+</li>
+<li>first gen status</li>
+</ul>
+<p>A logistic regression model will also be fit to take into account multiple explanatory variables at once.</p>
+<p>We’ll also consider just the students that missed at least one question from the earlier homework assignment. These students are students that clearly have room for improvement.</p>
 </div>
 
 

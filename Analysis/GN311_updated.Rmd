@@ -138,7 +138,7 @@ t.QC
 
 ## Table
 
-Below is a frequency table for questions 9, 10 and both that tabulates correct, incorrect and no record responses by whether or not ST 311 was taken. The first two rows are for 2019 and the second two rows are for 2020.  
+Below is a frequency table for questions 9, 10 and both that tabulates correct, incorrect and no record responses by whether or not ST 311 was taken. The first two rows are for 2019 and the second two rows are for 2020.  These questions are prior to intervention in the spring 2020 semester so we would roughly expect to see the same trends across 2019 and 2020 assuming similar populations of students.
 
 ```{r,echo=F}
 t.tST
@@ -169,5 +169,59 @@ summary(table(gn311$tookST311[gn311$year==2020],
 
 # Analysis in regard to HW 6 questions
 
-Intervention occurred between homework 2 and homework 6.  We want to look at any possible impact the intervention may have had.
+Intervention occurred between homework 2 and homework 6.  We want to look at any possible impact the intervention may have had.  There are a number of questions from homework 6 to consider here.  There are binary indicators of correct/incorrect for each and one summary average variable that aggregates across the questions.  
+
+```{r, eval = FALSE, echo = FALSE}
+select(full_data, Cohort, ends_with("bin")) %>% group_by(Cohort) %>% summarize_if(.predicate = function(x) is.numeric(x), .funs = funs(quantile), p = 0.25, na.rm = TRUE)
+```
+
+For all of the questions, ignoring missing values (students that didn't complete the question and students that didn't have a cohort) the first quartile of binary scores is 1.  This indicates that 75% of people got an individual question correct.  The sample proportion of correct responses for each question is given below as well as the summary stats on the aggregate variable.
+
+```{r, warning = FALSE}
+means <- full_data %>% group_by(Cohort) %>% select(Cohort, ends_with("bin")) %>% 
+  summarize_if(.predicate = function(x) is.numeric(x), .funs = funs(mean="mean"), na.rm = TRUE) 
+kable(means[1:2,], col.names = c("Cohort", paste("Q", c(3:10, 15:19)), "Aggregate"), digits = 3) %>% 
+  kable_styling(bootstrap_options = "striped",full_width = T) 
+```
+
+Conducting a quick comparison of these sample proportions by question
+
+```{r}
+full_data <- full_data[!is.na(full_data$Cohort),]
+sum_glm <- function(data, response){ 
+  fit <- glm(data[[response]] ~ Cohort, data = data)
+  resp <- gregexpr(response, pattern = "(Q_\\d)")
+  ret <- c(substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), round(c(fit$coefficients, summary(fit)$coefficients[2,4]), 4))
+  names(ret) <- c("Response", "Intercept", "Beta1", "p-value")
+  ret
+}
+
+bin_names <- c("HW6_Q_3_score_bin", "HW6_Q_4_score_bin", "HW6_Q_5_score_bin",
+               "HW6_Q_6_score_bin", "HW6_Q_7_score_bin", "HW6_Q_8_score_bin",
+               "HW6_Q_9_score_bin", "HW6_Q_10_score_bin", "HW6_Q_15_score_bin",
+               "HW6_Q_16_score_bin", "HW6_Q_17_score_bin", "HW6_Q_18_score_bin",
+           "HW6_Q_19_score_bin")
+lapply(X = bin_names, FUN = sum_glm, data = full_data)
+```
+
+Three of these are significant or marginally signficant and in the direction we'd hope for.  That's a good sign.  
+
+To further investigate the effect of the intervention we'll look at a break down comparing cohorts for correct/incorrect question status by:  
+
++ ST 311 status (not taken, currently in, previously taken)  
++ ST 311 GPA for those that have taken the course  
++ highest math course taken with indications for grade  
++ class level (senior, etc.)
++ race  
++ sex   
++ combinations of sex and race  
++ transfer status  
++ rural status  
++ first gen status
+
+A logistic regression model will also be fit to take into account multiple explanatory variables at once.
+
+We'll also consider just the students that missed at least one question from the earlier homework assignment.  These students are students that clearly have room for improvement.  
+
+
 

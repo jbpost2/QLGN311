@@ -169,7 +169,9 @@ summary(table(gn311$tookST311[gn311$year==2020],
 
 # Analysis in regard to HW 6 questions
 
-Intervention occurred between homework 2 and homework 6.  We want to look at any possible impact the intervention may have had.  There are a number of questions from homework 6 to consider here.  There are binary indicators of correct/incorrect for each and one summary average variable that aggregates across the questions.  
+Intervention occurred between homework 2 and homework 6.  We want to look at any possible impact the intervention may have had.  There are a number of questions from homework 6 to consider here.  There are binary indicators of correct/incorrect for each and one summary average variable that aggregates across the questions. 
+
+
 
 ```{r, eval = FALSE, echo = FALSE}
 select(full_data, Cohort, ends_with("bin")) %>% group_by(Cohort) %>% summarize_if(.predicate = function(x) is.numeric(x), .funs = funs(quantile), p = 0.25, na.rm = TRUE)
@@ -184,6 +186,12 @@ kable(means[1:2,], col.names = c("Cohort", paste("Q", c(3:10, 15:19)), "Aggregat
   kable_styling(bootstrap_options = "striped",full_width = T) 
 ```
 
+Looking closely at the questions themselves, I'm going to remove question 8, 9, and 10 (Keeping all decimal digits during your calculations and rounding your answer to 3 decimal digits, what is the calculated chi-square value? What is the number for the degrees of freedom? What is the critical value?  Round to two decimal places.) as these weren't things focused on in the intervention.
+
+```{r}
+full_data <- select(full_data, -HW6_Q_8_score_bin, -HW6_Q_9_score_bin, - HW6_Q_10_score_bin)
+```
+
 Conducting a quick comparison of these sample proportions by question using a logistic regression model to get a p-value (assumptions likely not met but still somewhat useful).
 
 ```{r}
@@ -195,15 +203,14 @@ full_data$MTHLevel <- ifelse(full_data$MTHcourse > 200, "200's", "100's")
 sum_glm <- function(data, response){ 
   fit <- glm(data[[response]] ~ Cohort, data = data)
   means <- aggregate(data[[response]] ~ Cohort, data = data, FUN = mean)
-  resp <- gregexpr(response, pattern = "(Q_\\d)")
+  resp <- gregexpr(response, pattern = "(Q_\\d+)")
   ret <- c(substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), round(c(fit$coefficients, means[,2], means[2,2]-means[1,2], summary(fit)$coefficients[2,4]), 4))
   names(ret) <- c("Response", "Intercept", "Beta1", "2019 mean", "2020 mean", "Difference", "p-value")
   ret
 }
 
 bin_names <- c("HW6_Q_3_score_bin", "HW6_Q_4_score_bin", "HW6_Q_5_score_bin",
-               "HW6_Q_6_score_bin", "HW6_Q_7_score_bin", "HW6_Q_8_score_bin",
-               "HW6_Q_9_score_bin", "HW6_Q_10_score_bin", "HW6_Q_15_score_bin",
+               "HW6_Q_6_score_bin", "HW6_Q_7_score_bin",  "HW6_Q_15_score_bin",
                "HW6_Q_16_score_bin", "HW6_Q_17_score_bin", "HW6_Q_18_score_bin",
            "HW6_Q_19_score_bin")
 lapply(X = bin_names, FUN = sum_glm, data = full_data)
@@ -211,13 +218,15 @@ lapply(X = bin_names, FUN = sum_glm, data = full_data)
 
 Three of these are significant or marginally signficant and in the direction we'd hope for.  That's a good sign.  
 
-We'll also consider just the students that missed at least one question from the earlier homework assignment.  These students are students that clearly have room for improvement.  
+We'll also consider just the students that missed at least one question from the earlier homework assignment.  Perhaps they are the ones that will show improvement.  
 
 ```{r}
 #filter by missing an earlier question or having no record
 missed_data <- filter(full_data, bothQscorrect != 1)
 lapply(X = bin_names, FUN = sum_glm, data = missed_data)
 ```
+
+Looking like just the last two questions showed improvement (none went the wrong way) when averaged across things.  
 
 # HW 6 Q's broken down - all students 
 
@@ -234,12 +243,12 @@ To further investigate the effect of the intervention we'll look at a break down
 
 First just the means across some combinations.
 
-```{r}
+```{r, echo = FALSE}
 q_means <- function(data, response, preds){
    ag1 <- aggregate(as.formula(paste0(response, "~", paste(preds, collapse = "+"))), data = data, FUN = mean)
    ag2 <- aggregate(as.formula(paste0(response, "~", paste(preds, collapse = "+"))), data = data, FUN = length)
    temp <- cbind(ag1, ag2[,ncol(ag2)])
-   resp <- gregexpr(response, pattern = "(Q_\\d)")
+   resp <- gregexpr(response, pattern = "(Q_\\d+)")
    names(temp)[(ncol(temp)-1):ncol(temp)] <- paste0(  substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), c("Mean", "Count"))
    return(temp)
 }
@@ -266,18 +275,18 @@ qs <- c(3:10, 15:19)
 preds <- c("Cohort", "MTHLevel", "tookST311", "NC_LVL_BOT_DESCR", "STDNT_RACE_IPEDS", "STUDENT_GENDER_IPEDS", "ORIG_ENROLL_STATUS", "RuralStatus", "FirstGenStatus")
 ```
 
-## By Cohort, Math level, Class level, and Sex  
+<!-- ## By Cohort, Math level, Class level, and Sex   -->
 
-```{r, results = "asis"}
-out1 <- lapply(X = bin_names, FUN = q_means, data = full_data, preds = preds[c(1,2,4,6)])
+<!-- ```{r, results = "asis", echo = FALSE} -->
+<!-- out1 <- lapply(X = bin_names, FUN = q_means, data = full_data, preds = preds[c(1,2,4,6)]) -->
 
-out1e <- lapply(FUN = nice_it, X= out1)
+<!-- out1e <- lapply(FUN = nice_it, X= out1) -->
 
-for(x in 1:length(out1e)){
-  print(kable(out1e[[x]], digits = 3, col.names = c("MathLevel", "Class", "Sex", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
-          kable_styling(bootstrap_options = "striped",full_width = T) )
-} 
-```
+<!-- for(x in 1:length(out1e)){ -->
+<!--   print(kable(out1e[[x]], digits = 3, col.names = c("MathLevel", "Class", "Sex", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>%  -->
+<!--           kable_styling(bootstrap_options = "striped",full_width = T) ) -->
+<!-- }  -->
+<!-- ``` -->
 
 ## By Cohort, Math Level, Transfer, and First Gen  
 
@@ -309,18 +318,18 @@ for(x in 1:length(out3e)){
 # HW 6 Q's broken down - incorrect HW 2
 
 
-## By Cohort, Math level, Class level, and Sex  
+<!-- ## By Cohort, Math level, Class level, and Sex   -->
 
-```{r, results = "asis"}
-out1 <- lapply(X = bin_names, FUN = q_means, data = missed_data, preds = preds[c(1,2,4,6)])
+<!-- ```{r, results = "asis"} -->
+<!-- out1 <- lapply(X = bin_names, FUN = q_means, data = missed_data, preds = preds[c(1,2,4,6)]) -->
 
-out1e <- lapply(FUN = nice_it, X= out1)
+<!-- out1e <- lapply(FUN = nice_it, X= out1) -->
 
-for(x in 1:length(out1e)){
-  print(kable(out1e[[x]], digits = 3, col.names = c("MathLevel", "Class", "Sex", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
-          kable_styling(bootstrap_options = "striped",full_width = T) )
-} 
-```
+<!-- for(x in 1:length(out1e)){ -->
+<!--   print(kable(out1e[[x]], digits = 3, col.names = c("MathLevel", "Class", "Sex", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>%  -->
+<!--           kable_styling(bootstrap_options = "striped",full_width = T) ) -->
+<!-- }  -->
+<!-- ``` -->
 
 ## By Cohort, Math Level, Transfer, and First Gen  
 
@@ -355,8 +364,37 @@ On the full data I'll do some automated variable selection just to see what vari
 ```{r}
 full_fit <- function(data, response, preds){
   fit <- glm(as.formula(paste0(response, "~", "(", paste(preds, collapse = "*"), ")^2")), data = data, family = binomial)
+  mod <- stepAIC(fit, scope = list(lower =~Cohort, upper = fit), trace = FALSE)
+  summary(mod)
 }
-fit <- full_fit(full_data, bin_names[5], preds[1:3])
-MASS::stepAIC(fit, scope = list(lower = ~Cohort, upper = fit), trace = FALSE)
-````
+
+
+#remove NAs before use...
+full_data <- full_data %>% filter(!is.na(FirstGenStatus))
+full_data <- full_data %>% filter(!is.na(RuralStatus))
+```
+
+## Cohort, Math Level, and Transfer  
+
+```{r}
+lapply(X = bin_names, FUN = full_fit, data = full_data, preds = preds[c(1,2, 7)])
+```
+
+## Cohort, Math Level, and Rural Status  
+
+```{r}
+lapply(X = bin_names, FUN = full_fit, data = full_data, preds = preds[c(1,2, 8)])
+
+```
+
+## Cohort, Math Level, and First Gen
+
+```{r}
+lapply(X = bin_names, FUN = full_fit, data = full_data, preds = preds[c(1,2, 9)])
+```
+
+# Logistic rough conclusions
+
+Cohort is reasonably important in quite a few of the models.  We are doing a lot of model fitting and tests so p-values aren't a great metric here but we are getting some evidence of an improvement by cohort.  Math level is also important in a good number of the models.  There are some interactions with cohort and the other variables that are significant here or there as well.  This would imply that the intervention might help certain groups more.  However, again, with all the testing it is hard to say that these are real results - encouraging to some degree though!  
+
 

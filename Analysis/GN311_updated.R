@@ -1,5 +1,5 @@
 ## DJS - GN 311
-
+library(MASS)
 library(readr)
 library(tidyr)
 library(ggplot2)

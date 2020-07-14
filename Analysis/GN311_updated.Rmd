@@ -184,15 +184,20 @@ kable(means[1:2,], col.names = c("Cohort", paste("Q", c(3:10, 15:19)), "Aggregat
   kable_styling(bootstrap_options = "striped",full_width = T) 
 ```
 
-Conducting a quick comparison of these sample proportions by question
+Conducting a quick comparison of these sample proportions by question using a logistic regression model to get a p-value (assumptions likely not met but still somewhat useful).
 
 ```{r}
 full_data <- full_data[!is.na(full_data$Cohort),]
+
+#create indicator of math above 100 level or not
+full_data$MTHLevel <- ifelse(full_data$MTHcourse > 200, "200's", "100's")
+
 sum_glm <- function(data, response){ 
   fit <- glm(data[[response]] ~ Cohort, data = data)
+  means <- aggregate(data[[response]] ~ Cohort, data = data, FUN = mean)
   resp <- gregexpr(response, pattern = "(Q_\\d)")
-  ret <- c(substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), round(c(fit$coefficients, summary(fit)$coefficients[2,4]), 4))
-  names(ret) <- c("Response", "Intercept", "Beta1", "p-value")
+  ret <- c(substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), round(c(fit$coefficients, means[,2], means[2,2]-means[1,2], summary(fit)$coefficients[2,4]), 4))
+  names(ret) <- c("Response", "Intercept", "Beta1", "2019 mean", "2020 mean", "Difference", "p-value")
   ret
 }
 
@@ -206,22 +211,152 @@ lapply(X = bin_names, FUN = sum_glm, data = full_data)
 
 Three of these are significant or marginally signficant and in the direction we'd hope for.  That's a good sign.  
 
-To further investigate the effect of the intervention we'll look at a break down comparing cohorts for correct/incorrect question status by:  
-
-+ ST 311 status (not taken, currently in, previously taken)  
-+ ST 311 GPA for those that have taken the course  
-+ highest math course taken with indications for grade  
-+ class level (senior, etc.)
-+ race  
-+ sex   
-+ combinations of sex and race  
-+ transfer status  
-+ rural status  
-+ first gen status
-
-A logistic regression model will also be fit to take into account multiple explanatory variables at once.
-
 We'll also consider just the students that missed at least one question from the earlier homework assignment.  These students are students that clearly have room for improvement.  
 
+```{r}
+#filter by missing an earlier question or having no record
+missed_data <- filter(full_data, bothQscorrect != 1)
+lapply(X = bin_names, FUN = sum_glm, data = missed_data)
+```
 
+# HW 6 Q's broken down - all students 
+
+To further investigate the effect of the intervention we'll look at a break down comparing cohorts for correct/incorrect question status by things like:  
+
++ highest math course taken (>200 or <200)  (`MTHLevel`)
++ ST 311 status (not taken or taken) (`tookST311`)  
++ class level (senior, etc.) (`NC_LVL_BOT_DESCR`)
++ race (`STDNT_RACE_IPEDS`)  
++ sex (`STUDENT_GENDER_IPEDS`)   
++ transfer status (`ORIG_ENROLL_STATUS`)
++ rural status(`RuralStatus`)
++ first gen status (`FirstGenStatus`)
+
+First just the means across some combinations.
+
+```{r}
+q_means <- function(data, response, preds){
+   ag1 <- aggregate(as.formula(paste0(response, "~", paste(preds, collapse = "+"))), data = data, FUN = mean)
+   ag2 <- aggregate(as.formula(paste0(response, "~", paste(preds, collapse = "+"))), data = data, FUN = length)
+   temp <- cbind(ag1, ag2[,ncol(ag2)])
+   resp <- gregexpr(response, pattern = "(Q_\\d)")
+   names(temp)[(ncol(temp)-1):ncol(temp)] <- paste0(  substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), c("Mean", "Count"))
+   return(temp)
+}
+
+# q_means <- function(data, response, preds){
+#   ag1 <- aggregate(as.formula(paste0(response, "~", paste(preds, collapse = "+"))), data = data, FUN = mean)
+#   ag2 <- aggregate(as.formula(paste0(response, "~", paste(preds, collapse = "+"))), data = data, FUN = length)
+#   temp <- cbind(ag1, ag2[,ncol(ag2)])
+#   resp <- gregexpr(response, pattern = "(Q_\\d)")
+#   names(temp)[(ncol(temp)-1):ncol(temp)] <- paste(  substring(response, resp[[1]], resp[[1]]+attr(resp[[1]],'match.length')-1), c("Avg", "n"))
+#   temp <- temp %>% pivot_wider(names_from = Cohort, values_from = names(temp)[(nrow(temp)-1):nrow(temp)])
+#   #temp$Diff <- temp[,ncol(temp)-2] - temp[, ncol(temp)-3]
+#   return(temp)
+# }
+
+nice_it <- function(out){
+ temp <- out %>% pivot_wider(names_from = Cohort, values_from = starts_with("Q")) 
+ temp$Diff <- round(temp[,(ncol(temp)-2)] - temp[,(ncol(temp)-3)], 3)
+ temp
+}
+
+qs <- c(3:10, 15:19)
+
+preds <- c("Cohort", "MTHLevel", "tookST311", "NC_LVL_BOT_DESCR", "STDNT_RACE_IPEDS", "STUDENT_GENDER_IPEDS", "ORIG_ENROLL_STATUS", "RuralStatus", "FirstGenStatus")
+```
+
+## By Cohort, Math level, Class level, and Sex  
+
+```{r, results = "asis"}
+out1 <- lapply(X = bin_names, FUN = q_means, data = full_data, preds = preds[c(1,2,4,6)])
+
+out1e <- lapply(FUN = nice_it, X= out1)
+
+for(x in 1:length(out1e)){
+  print(kable(out1e[[x]], digits = 3, col.names = c("MathLevel", "Class", "Sex", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
+          kable_styling(bootstrap_options = "striped",full_width = T) )
+} 
+```
+
+## By Cohort, Math Level, Transfer, and First Gen  
+
+```{r, results = "asis"}
+out2 <- lapply(X = bin_names, FUN = q_means, data = full_data, preds = preds[c(1,2,7,9)])
+
+out2e <- lapply(FUN = nice_it, X= out2)
+
+for(x in 1:length(out2e)){
+  print(kable(out2e[[x]], digits = 3, col.names = c("MathLevel", "Transfer", "First Gen", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
+          kable_styling(bootstrap_options = "striped",full_width = T) )
+} 
+```
+
+## BY Cohort, Math Level, and Rural status
+
+```{r, results = "asis"}
+out3 <- lapply(X = bin_names, FUN = q_means, data = full_data, preds = preds[c(1,2, 8)])
+
+out3e <- lapply(FUN = nice_it, X= out3)
+
+for(x in 1:length(out3e)){
+  print(kable(out3e[[x]], digits = 3, col.names = c("MathLevel", "Rural", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
+          kable_styling(bootstrap_options = "striped",full_width = T) )
+} 
+```
+
+
+# HW 6 Q's broken down - incorrect HW 2
+
+
+## By Cohort, Math level, Class level, and Sex  
+
+```{r, results = "asis"}
+out1 <- lapply(X = bin_names, FUN = q_means, data = missed_data, preds = preds[c(1,2,4,6)])
+
+out1e <- lapply(FUN = nice_it, X= out1)
+
+for(x in 1:length(out1e)){
+  print(kable(out1e[[x]], digits = 3, col.names = c("MathLevel", "Class", "Sex", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
+          kable_styling(bootstrap_options = "striped",full_width = T) )
+} 
+```
+
+## By Cohort, Math Level, Transfer, and First Gen  
+
+```{r, results = "asis"}
+out2 <- lapply(X = bin_names, FUN = q_means, data = missed_data, preds = preds[c(1,2,7,9)])
+
+out2e <- lapply(FUN = nice_it, X= out2)
+
+for(x in 1:length(out2e)){
+  print(kable(out2e[[x]], digits = 3, col.names = c("MathLevel", "Transfer", "First Gen", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
+          kable_styling(bootstrap_options = "striped",full_width = T) )
+} 
+```
+
+## BY Cohort, Math Level, and Rural status
+
+```{r, results = "asis"}
+out3 <- lapply(X = bin_names, FUN = q_means, data = missed_data, preds = preds[c(1,2, 8)])
+
+out3e <- lapply(FUN = nice_it, X= out3)
+
+for(x in 1:length(out3e)){
+  print(kable(out3e[[x]], digits = 3, col.names = c("MathLevel", "Rural", "Avg2019", "Avg2020", "n2019", "n2020", "AvgDiff"), caption = paste0("Question ", qs[x], " Summary")) %>% 
+          kable_styling(bootstrap_options = "striped",full_width = T) )
+} 
+```
+
+# Logistic Regression with Variable Selection
+
+On the full data I'll do some automated variable selection just to see what variables pop out as useful.  
+
+```{r}
+full_fit <- function(data, response, preds){
+  fit <- glm(as.formula(paste0(response, "~", "(", paste(preds, collapse = "*"), ")^2")), data = data, family = binomial)
+}
+fit <- full_fit(full_data, bin_names[5], preds[1:3])
+MASS::stepAIC(fit, scope = list(lower = ~Cohort, upper = fit), trace = FALSE)
+````
 

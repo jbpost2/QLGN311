@@ -41,6 +41,20 @@ p.maxMTH <-
   geom_text(aes(label=Counts),vjust=-.75, size=3) +
   theme(legend.position="none")
 
+Atemp <- data.frame(MTH = A$MTH[1:19], Counts = A$Counts[1:19]+A$Counts[20:38])
+Atemp$Proportion = Atemp$Counts/sum(Atemp$Counts)
+
+p.maxMTH.Poster <-
+  ggdotchart(data=Atemp, 
+             x="MTH", y="Proportion", 
+             group="MTH",
+             add="segment", 
+             color="MTH",
+             size = 1.5,
+             ggtheme = theme_pubclean() ) + 
+  geom_text(aes(label=Counts),vjust=-.75, size=3) +
+  theme(legend.position="none")
+
 # Data Frame for table
 
 B1<-rbind.data.frame(A$Counts[1:19],A$Proportion[1:19])

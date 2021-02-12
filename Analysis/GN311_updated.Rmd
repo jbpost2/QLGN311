@@ -466,6 +466,9 @@ FallNotMTH200FirstGen <- sum(cf[c(1)])
 myDF <- data.frame(Cohort = rep(c("Spring", "Fall"), 4), MathLevel = rep(c(rep(">200", 2), rep("<200",2)), 2), FirstGenStatus = c(rep("Not First", 4), rep("First", 4)), Estimate = 1/(1+exp(-c(SpringMTH200NotFirstGen,FallMTH200NotFirstGen , SpringNotMTH200NotFirstGen, FallNotMTH200NotFirstGen, SpringMTH200FirstGen,FallMTH200FirstGen,  SpringNotMTH200FirstGen, FallNotMTH200FirstGen))))
 
 ggplot(data = myDF, aes(x=Cohort)) + geom_bar(stat = "identity", aes(y = Estimate, fill = MathLevel), position = "dodge")
+
+#ggplot(data = myDF, aes(x=Cohort)) + geom_bar(stat = "identity", aes(y = Estimate, fill = MathLevel), position = "dodge") +facet_wrap(FirstGenStatus)
+
 ```
 
 
